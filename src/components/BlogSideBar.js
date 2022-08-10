@@ -6,6 +6,7 @@ export class BlogSideBar extends LitElement {
       highlightedPosts: {
         type: Array,
       },
+
     };
   }
 

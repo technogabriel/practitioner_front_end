@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit';
-import {getPosts} from '../backend/index.js';
-import { BlogPostModel } from '../models/BlogPostModel.js';
+import {authorization} from '../auth/authorization.js';
+import {getPosts, updatedPost} from '../backend/posts.js';
+
 
 export class BlogApp extends LitElement {
   static get properties() {
@@ -24,6 +25,7 @@ export class BlogApp extends LitElement {
     this.title = 'My app';
     this.posts = [];
     this.loading = false;
+    this.isLoggedIn = authorization.isLoggedIn();
   }
 
   async connectedCallback(){
@@ -31,17 +33,33 @@ export class BlogApp extends LitElement {
 
     this.loading = true;
     const posts = await getPosts();
-    this.posts = posts.map(data => new BlogPostModel(data));
+    this.posts = posts;
     this.loading = false;
   }
 
-  toggleHighlightPost(postId) {
-    this.posts = this.posts.map(post => {
-      if (post.id === postId) {
-        return { ...post, highlighted: !post.highlighted };
+  
+  replacePost(postId, updatedPost){
+    this.posts = this.posts.map(post =>{
+      if(post.id === postId){
+        return updatedPost;  
       }
       return post;
     });
+  }
+
+  toggleHighlightPost(postId) {
+    this.posts.forEach(async post => {
+      if (post.id === postId){
+        const updatePost = await updatedPost(postId, {
+          highlighted: !post.highlighted,
+        });
+        this.replacePost(postId, updatePost);
+      }
+    });
+  }
+
+  handleLogin(){
+    this.isLoggedIn = true;
   }
 
   render() {
@@ -60,7 +78,9 @@ export class BlogApp extends LitElement {
                 <h1>Título del blog</h1>
               </div>
               <div class="col-6 col-lg-4">
-                <login-form></login-form>
+                ${!this.isLoggedIn
+                  ? html`<login-form @login=${this.handleLogin}></login-form>`
+                  : ''}
               </div>
             </div>
           </div>

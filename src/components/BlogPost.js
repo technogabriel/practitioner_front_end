@@ -1,4 +1,5 @@
 import { css, html, LitElement } from 'lit';
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 
 import { BlogPostModel } from '../models/BlogPostModel.js';
 
@@ -34,6 +35,9 @@ export class BlogPost extends LitElement {
       post: {
         type: BlogPostModel,
       },
+      editable: {
+        type: Boolean,
+      },
     };
   }
 
@@ -68,6 +72,7 @@ export class BlogPost extends LitElement {
           <h3>${this.post.title}</h3>
           <button
             class="btn btn-link btn-sm"
+            .disabled=${!this.editable}
             @click="${this.toggleHighlightPost}"
             title="${this.post.highlighted
               ? 'Post destacado'
@@ -80,7 +85,7 @@ export class BlogPost extends LitElement {
           <div>
             <p class="text-muted mb-0 post-author">por ${this.post.author}</p>
             <p class="text-muted post-date">
-              publicado el ${this.post.date.toFormat("d' de 'MMMM")}
+            publicado el ${this.post.date.toFormat("d' de 'MMMM")}
             </p>
           </div>
           <div class="ms-2">
@@ -90,7 +95,7 @@ export class BlogPost extends LitElement {
             )}
           </div>
         </div>
-        <p>${this.post.content}</p>
+        <p>${unsafeHTML(this.post.content)}</p>
       </article>
     `;
   }
