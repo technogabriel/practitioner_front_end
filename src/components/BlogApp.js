@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import {getPosts} from '../backend/index.js';
 import { BlogPostModel } from '../models/BlogPostModel.js';
 
 export class BlogApp extends LitElement {
@@ -11,44 +12,36 @@ export class BlogApp extends LitElement {
         type: Array,
         attribute: false,
       },
+      loading: {
+        type: Boolean,
+        attribute: false,
+      },
     };
   }
 
   constructor() {
     super();
     this.title = 'My app';
-    this.posts = [
-      {
-        id: 1,
-        title: 'post con litElement',
-        author: 'Pocho Lavezzi',
-        date: '09/08/2022',
-        content: 'Contenido del post 1…',
-        categories: ['Desarrollo web', 'LitElement'],
-        highlighted: true,
-      },
-      {
-        id: 2,
-        title: 'Este es otro post ',
-        author: 'Pipa Higuain',
-        date: '08/08/2022',
-        content: 'algun dato...',
-        categories: ['Desarrollo web', 'LitElement'],
-        highlighted: false,
-      },
-    ].map(data => new BlogPostModel(data));
+    this.posts = [];
+    this.loading = false;
+  }
+
+  async connectedCallback(){
+    super.connectedCallback();
+
+    this.loading = true;
+    const posts = await getPosts();
+    this.posts = posts.map(data => new BlogPostModel(data));
+    this.loading = false;
   }
 
   toggleHighlightPost(postId) {
-    // console.log(this.posts);
     this.posts = this.posts.map(post => {
       if (post.id === postId) {
-        // console.log(`Modifying post ${post.id}`);
         return { ...post, highlighted: !post.highlighted };
       }
       return post;
     });
-    // console.log(this.posts);
   }
 
   render() {
@@ -75,17 +68,19 @@ export class BlogApp extends LitElement {
         <div class="container py-4">
           <div class="row">
             <div class="col-12 col-md-8 col-lg-9 articles">
-              ${this.posts.map(
-                post =>
-                  html`<div class="mt-4 mb-5">
-                    <blog-post
-                      .post=${post}
-                      @toggle-highlight-post="${() =>
-                        this.toggleHighlightPost(post.id)}"
-                    >
-                    </blog-post>
-                  </div>`
-              )}
+              ${this.loading
+                ? html`<div class="mt-4 mb-5">Cargando posts...</div>`
+                : this.posts.map(
+                    post =>
+                      html`<div class="mt-4 mb-5">
+                        <blog-post
+                          .post=${post}
+                          @toggle-highlight-post="${() =>
+                            this.toggleHighlightPost(post.id)}"
+                        >
+                        </blog-post>
+                      </div>`
+                  )}
             </div>
             <div class="col-4 col-lg-3 d-none d-md-block">
               <blog-sidebar

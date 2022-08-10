@@ -5,7 +5,7 @@ export class BlogPostModel{
         this.id = data.id;
     this.title = data.title;
     this.author = data.author;
-    this.date = DateTime.fromFormat(data.date, 'dd/MM/yyyy', {
+    this.date = DateTime.fromISO(data.created_at, {
       locale: 'es-AR',
     });
     this.content = data.content;
